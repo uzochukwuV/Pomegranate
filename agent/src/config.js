@@ -10,7 +10,7 @@ export const config = {
   agentVault: process.env.AGENT_VAULT_ADDRESS,
   manifestoLog: process.env.MANIFESTO_LOG_ADDRESS,
   agentMemeToken: process.env.AGENT_MEME_TOKEN_ADDRESS || '0xd92afd7750b1b4444',
-  usdc: process.env.USDC_ADDRESS || '0x8AC76a51cc95Cd580d',
+  usdc: process.env.COLLATERAL_TOKEN_ADDRESS || process.env.USDC_ADDRESS || '0x8AC76a51cc95Cd580d',
 
   // Agent Wallet
   agentPrivateKey: process.env.AGENT_PRIVATE_KEY,

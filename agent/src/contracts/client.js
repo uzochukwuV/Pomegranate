@@ -1,52 +1,76 @@
-import { createPublicClient, createWalletClient, http, parseAbi, defineChain } from 'viem';
+import { createPublicClient, createWalletClient, http, parseAbi, defineChain, parseUnits } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { config } from '../config.js';
 
-const localChain = defineChain({
+const runtimeChain = defineChain({
   id: config.chainId,
-  name: 'Hardhat Fork',
+  name: config.chainId === 97 ? 'BSC Testnet' : config.chainId === 56 ? 'BNB Smart Chain' : 'Custom Chain',
   nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
   rpcUrls: { default: { http: [config.rpcUrl] } },
 });
 
+function toBytes32TradeId(tradeId) {
+  if (typeof tradeId !== 'string' || tradeId.length === 0) {
+    throw new Error('tradeId must be a non-empty string');
+  }
+
+  if (tradeId.startsWith('0x') && tradeId.length === 66) {
+    return tradeId;
+  }
+
+  return `0x${Buffer.from(tradeId).toString('hex').padEnd(64, '0')}`;
+}
+
+function toSignedMicroUnits(amount) {
+  const scaled = Math.round(Number(amount) * 1e6);
+  return BigInt(scaled);
+}
+
 /**
  * Smart Contract Integration Layer
- * Reads tips from AgentVault and publishes reasoning to ManifestoLog
+ * Reads tips from AgentVault and publishes reasoning to ManifestoLog.
  */
 export class ContractClient {
   constructor() {
+    this.account = privateKeyToAccount(config.agentPrivateKey);
+
     this.publicClient = createPublicClient({
-      chain: localChain,
+      chain: runtimeChain,
       transport: http(config.rpcUrl),
     });
-
-    this.account = privateKeyToAccount(config.agentPrivateKey);
 
     this.walletClient = createWalletClient({
       account: this.account,
-      chain: localChain,
+      chain: runtimeChain,
       transport: http(config.rpcUrl),
     });
 
-    // ABI definitions
     this.agentVaultAbi = parseAbi([
       'function epochNumber() view returns (uint256)',
       'function epochActive() view returns (bool)',
       'function epochStartTime() view returns (uint256)',
-      'function getEpochTips(uint256 epochNum) view returns ((address tipper, string content, uint256 weight, bool attributed, uint256 timestamp)[])',
+      'function epochDuration() view returns (uint256)',
+      'function getDeployableCapital() view returns (uint256)',
+      'function getEpochTips(uint256 epochNum) view returns ((address tipper, string content, uint256 weight, uint256 rawBalance, uint256 stakeAmount, uint256 epoch, bool attributed, bytes32 tradeId, bool isContrarian)[])',
       'function tradeAttribution(bytes32) view returns (address)',
+      'function tradePnL(bytes32) view returns (int256)',
       'function attributeTrade(bytes32 tradeId, address tipper, uint256 tipIndex) external',
-      'function distributeProfits(uint256 profits) external',
+      'function flagContrarian(uint256 tipIndex) external',
       'function startEpoch() external',
+      'function recordTradePnL(bytes32 tradeId, int256 pnl) external',
+      'function settleEpoch() external',
+      'function withdrawForTrading(uint256 amount) external returns (bool)',
+      'function returnFromTrading(uint256 amount, int256 pnl) external returns (bool)',
       'function agentMemeToken() view returns (address)',
-      'event TipSubmitted(uint256 indexed epochNumber, address indexed tipper, string content, uint256 weight, uint256 tipIndex)',
+      'event TipSubmitted(address indexed tipper, string content, uint256 weight, uint256 epoch)',
     ]);
 
     this.manifestoLogAbi = parseAbi([
       'function publishManifesto(string reasoning, bytes32 tradeId, bool isPulse) external',
+      'function publishAutopsy(bytes32 tradeId, string reasoning) external',
       'function manifestoCount() view returns (uint256)',
-      'function manifestos(uint256) view returns (string reasoning, bytes32 tradeId, uint256 timestamp, bool isPulse)',
-      'event ManifestoPublished(uint256 indexed manifestoId, string reasoning, uint256 timestamp, bytes32 tradeId, bool isPulse)',
+      'function getManifesto(uint256 id) view returns ((uint256 id, string reasoning, uint256 timestamp, bytes32 tradeId, bool isPulse))',
+      'event ManifestoPublished(uint256 indexed id, string reasoning, uint256 timestamp, bytes32 indexed tradeId, bool isPulse)',
     ]);
 
     this.erc20Abi = parseAbi([
@@ -56,9 +80,6 @@ export class ContractClient {
     ]);
   }
 
-  /**
-   * Get current epoch number
-   */
   async getCurrentEpoch() {
     return this.publicClient.readContract({
       address: config.agentVault,
@@ -67,9 +88,6 @@ export class ContractClient {
     });
   }
 
-  /**
-   * Check if epoch is active
-   */
   async isEpochActive() {
     return this.publicClient.readContract({
       address: config.agentVault,
@@ -78,9 +96,6 @@ export class ContractClient {
     });
   }
 
-  /**
-   * Get epoch start time
-   */
   async getEpochStartTime() {
     return this.publicClient.readContract({
       address: config.agentVault,
@@ -89,11 +104,14 @@ export class ContractClient {
     });
   }
 
-  /**
-   * Get all tips for an epoch
-   * @param {bigint} epochNum - Epoch number
-   * @returns {Array} Array of tips with {tipper, content, weight, attributed, timestamp}
-   */
+  async getEpochDuration() {
+    return this.publicClient.readContract({
+      address: config.agentVault,
+      abi: this.agentVaultAbi,
+      functionName: 'epochDuration',
+    });
+  }
+
   async getEpochTips(epochNum) {
     const tips = await this.publicClient.readContract({
       address: config.agentVault,
@@ -106,15 +124,16 @@ export class ContractClient {
       index,
       tipper: tip.tipper,
       content: tip.content,
-      weight: tip.weight,
+      weight: Number(tip.weight),
+      rawBalance: Number(tip.rawBalance),
+      stakeAmount: Number(tip.stakeAmount),
+      epoch: Number(tip.epoch),
       attributed: tip.attributed,
-      timestamp: Number(tip.timestamp),
+      tradeId: tip.tradeId,
+      isContrarian: tip.isContrarian,
     }));
   }
 
-  /**
-   * Get conviction multiplier for a holder
-   */
   async getConvictionMultiplier(holder) {
     return this.publicClient.readContract({
       address: config.agentMemeToken,
@@ -124,24 +143,12 @@ export class ContractClient {
     });
   }
 
-  /**
-   * Publish reasoning to ManifestoLog before trading
-   * @param {string} reasoning - AI reasoning (max 500 chars)
-   * @param {string} tradeId - Unique trade identifier
-   * @param {boolean} isPulse - Whether this is a Narrative Pulse bulletin
-   * @returns {string} Transaction hash
-   */
   async publishManifesto(reasoning, tradeId, isPulse = false) {
-    console.log(`[Contract] Publishing manifesto for trade ${tradeId}`);
-
-    // Ensure reasoning is within limit
     if (reasoning.length > 500) {
-      reasoning = reasoning.substring(0, 497) + '...';
+      reasoning = `${reasoning.substring(0, 497)}...`;
     }
 
-    // Convert tradeId to bytes32
-    const tradeIdBytes32 = `0x${Buffer.from(tradeId).toString('hex').padEnd(64, '0')}`;
-
+    const tradeIdBytes32 = toBytes32TradeId(tradeId);
     const { request } = await this.publicClient.simulateContract({
       account: this.account,
       address: config.manifestoLog,
@@ -150,23 +157,28 @@ export class ContractClient {
       args: [reasoning, tradeIdBytes32, isPulse],
     });
 
-    const hash = await this.walletClient.writeContract(request);
-
-    console.log(`[Contract] Manifesto published, tx: ${hash}`);
-    return hash;
+    return this.walletClient.writeContract(request);
   }
 
-  /**
-   * Attribute a trade to a tip contributor
-   * @param {string} tradeId - Unique trade identifier
-   * @param {string} tipper - Address of tip contributor
-   * @param {number} tipIndex - Index of the tip in epoch tips array
-   */
+  async publishAutopsy(tradeId, reasoning) {
+    if (reasoning.length > 500) {
+      reasoning = `${reasoning.substring(0, 497)}...`;
+    }
+
+    const tradeIdBytes32 = toBytes32TradeId(tradeId);
+    const { request } = await this.publicClient.simulateContract({
+      account: this.account,
+      address: config.manifestoLog,
+      abi: this.manifestoLogAbi,
+      functionName: 'publishAutopsy',
+      args: [tradeIdBytes32, reasoning],
+    });
+
+    return this.walletClient.writeContract(request);
+  }
+
   async attributeTrade(tradeId, tipper, tipIndex) {
-    console.log(`[Contract] Attributing trade ${tradeId} to ${tipper} (tip #${tipIndex})`);
-
-    const tradeIdBytes32 = `0x${Buffer.from(tradeId).toString('hex').padEnd(64, '0')}`;
-
+    const tradeIdBytes32 = toBytes32TradeId(tradeId);
     const { request } = await this.publicClient.simulateContract({
       account: this.account,
       address: config.agentVault,
@@ -175,39 +187,36 @@ export class ContractClient {
       args: [tradeIdBytes32, tipper, BigInt(tipIndex)],
     });
 
-    const hash = await this.walletClient.writeContract(request);
-
-    console.log(`[Contract] Trade attributed, tx: ${hash}`);
-    return hash;
+    return this.walletClient.writeContract(request);
   }
 
-  /**
-   * Distribute epoch profits
-   * @param {bigint} profits - Profit amount in USDC (6 decimals)
-   */
-  async distributeProfits(profits) {
-    console.log(`[Contract] Distributing profits: ${profits} USDC`);
-
+  async flagContrarian(tipIndex) {
     const { request } = await this.publicClient.simulateContract({
       account: this.account,
       address: config.agentVault,
       abi: this.agentVaultAbi,
-      functionName: 'distributeProfits',
-      args: [profits],
+      functionName: 'flagContrarian',
+      args: [BigInt(tipIndex)],
     });
 
-    const hash = await this.walletClient.writeContract(request);
-
-    console.log(`[Contract] Profits distributed, tx: ${hash}`);
-    return hash;
+    return this.walletClient.writeContract(request);
   }
 
-  /**
-   * Start a new epoch
-   */
-  async startNewEpoch() {
-    console.log(`[Contract] Starting new epoch`);
+  async recordTradePnL(tradeId, pnlUsd) {
+    const tradeIdBytes32 = toBytes32TradeId(tradeId);
+    const pnl = toSignedMicroUnits(pnlUsd);
+    const { request } = await this.publicClient.simulateContract({
+      account: this.account,
+      address: config.agentVault,
+      abi: this.agentVaultAbi,
+      functionName: 'recordTradePnL',
+      args: [tradeIdBytes32, pnl],
+    });
 
+    return this.walletClient.writeContract(request);
+  }
+
+  async startNewEpoch() {
     const { request } = await this.publicClient.simulateContract({
       account: this.account,
       address: config.agentVault,
@@ -215,15 +224,20 @@ export class ContractClient {
       functionName: 'startEpoch',
     });
 
-    const hash = await this.walletClient.writeContract(request);
-
-    console.log(`[Contract] New epoch started, tx: ${hash}`);
-    return hash;
+    return this.walletClient.writeContract(request);
   }
 
-  /**
-   * Listen for new tips
-   */
+  async settleEpoch() {
+    const { request } = await this.publicClient.simulateContract({
+      account: this.account,
+      address: config.agentVault,
+      abi: this.agentVaultAbi,
+      functionName: 'settleEpoch',
+    });
+
+    return this.walletClient.writeContract(request);
+  }
+
   watchTipSubmissions(callback) {
     return this.publicClient.watchContractEvent({
       address: config.agentVault,
@@ -231,13 +245,12 @@ export class ContractClient {
       eventName: 'TipSubmitted',
       onLogs: (logs) => {
         logs.forEach((log) => {
-          const { epochNumber, tipper, content, weight, tipIndex } = log.args;
+          const { tipper, content, weight, epoch } = log.args;
           callback({
-            epochNumber: Number(epochNumber),
+            epochNumber: Number(epoch),
             tipper,
             content,
             weight: Number(weight),
-            tipIndex: Number(tipIndex),
             timestamp: Date.now(),
           });
         });

@@ -1,5 +1,5 @@
 import { MyxClient, fromViemWalletClient, OrderType, TriggerType, Direction, getPoolList } from '@myx-trade/sdk';
-import { createWalletClient, createPublicClient, http, parseUnits, formatUnits } from 'viem';
+import { createWalletClient, createPublicClient, http, parseUnits, formatUnits, zeroHash } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { arbitrumSepolia, bsc, bscTestnet } from 'viem/chains';
 import { config } from '../config.js';
@@ -29,6 +29,32 @@ export class MyxTradingClient {
 
     // Pool cache: baseSymbol -> pool info
     this.pools = null;
+  }
+
+  async verifyOrderPlacement(poolId, txHash) {
+    const [positionsResult, ordersResult] = await Promise.allSettled([
+      this.client.position.listPositions(this.address),
+      this.client.order.getOrders(this.address),
+    ]);
+
+    const positions =
+      positionsResult.status === 'fulfilled' && positionsResult.value?.code === 0
+        ? positionsResult.value.data ?? []
+        : [];
+    const orders =
+      ordersResult.status === 'fulfilled' && ordersResult.value?.code === 0
+        ? ordersResult.value.data ?? []
+        : [];
+
+    const matchingPosition = positions.find((position) => position.poolId === poolId);
+    const matchingOrder = orders.find((order) => order.poolId === poolId || order.txHash === txHash);
+
+    return {
+      positions,
+      orders,
+      matchingPosition,
+      matchingOrder,
+    };
   }
 
   async init() {
@@ -115,7 +141,7 @@ export class MyxTradingClient {
         chainId: MYX_CHAIN_ID,
         address: this.address,
         poolId: pool.poolId,
-        positionId: '0',
+        positionId: zeroHash,
         orderType: OrderType.MARKET,
         triggerType: TriggerType.NONE,
         direction: Direction.LONG,
@@ -131,8 +157,19 @@ export class MyxTradingClient {
       tradingFee.toString(),
     );
 
+    if (tx?.code !== 0 || !tx?.data?.transactionHash) {
+      throw new Error(`MYX createIncreaseOrder failed: ${tx?.message ?? 'unknown error'}`);
+    }
+
+    const verification = await this.verifyOrderPlacement(pool.poolId, tx.data.transactionHash);
+    if (!verification.matchingPosition && !verification.matchingOrder) {
+      throw new Error(
+        `MYX order was acknowledged but no position/order is visible yet for pool ${pool.poolId}. tx=${tx.data.transactionHash}`
+      );
+    }
+
     console.log(`[MYX Trading] LONG opened, tx:`, tx);
-    return { poolId: pool.poolId, pair, side: 'LONG', tx };
+    return { poolId: pool.poolId, pair, side: 'LONG', tx, verification };
   }
 
   /**
@@ -159,7 +196,7 @@ export class MyxTradingClient {
         chainId: MYX_CHAIN_ID,
         address: this.address,
         poolId: pool.poolId,
-        positionId: '0',
+        positionId: zeroHash,
         orderType: OrderType.MARKET,
         triggerType: TriggerType.NONE,
         direction: Direction.SHORT,
@@ -175,8 +212,19 @@ export class MyxTradingClient {
       tradingFee.toString(),
     );
 
+    if (tx?.code !== 0 || !tx?.data?.transactionHash) {
+      throw new Error(`MYX createIncreaseOrder failed: ${tx?.message ?? 'unknown error'}`);
+    }
+
+    const verification = await this.verifyOrderPlacement(pool.poolId, tx.data.transactionHash);
+    if (!verification.matchingPosition && !verification.matchingOrder) {
+      throw new Error(
+        `MYX order was acknowledged but no position/order is visible yet for pool ${pool.poolId}. tx=${tx.data.transactionHash}`
+      );
+    }
+
     console.log(`[MYX Trading] SHORT opened, tx:`, tx);
-    return { poolId: pool.poolId, pair, side: 'SHORT', tx };
+    return { poolId: pool.poolId, pair, side: 'SHORT', tx, verification };
   }
 
   /**

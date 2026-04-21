@@ -120,9 +120,23 @@ async function runDecisionCycle() {
 
     // 3. Ensure we have market data (fallback: fetch via REST)
     for (const pair of config.tradingPairs) {
-      // WS ticker data is the source of truth — skip pairs with no data yet
       if (!marketData[pair]) {
-        console.warn(`[Agent] No market data yet for ${pair}, skipping`);
+        try {
+          const ticker = await myxTrading.getTicker(pair);
+          const fallbackPrice = parseFloat(ticker?.lastPrice ?? 0);
+          if (fallbackPrice > 0) {
+            marketData[pair] = {
+              price: fallbackPrice,
+              change24h: 0,
+              priceHistory: priceHistory[pair] || [],
+            };
+            console.log(`[Agent] REST fallback price for ${pair}: $${fallbackPrice}`);
+          } else {
+            console.warn(`[Agent] No market data yet for ${pair}, skipping`);
+          }
+        } catch (error) {
+          console.warn(`[Agent] Failed REST fallback for ${pair}: ${error.message}`);
+        }
       }
     }
 
@@ -242,6 +256,15 @@ async function runDecisionCycle() {
         const pnlPercent = (priceDiff / position.entryPrice) * 100;
 
         await tracker.closePosition(decision.pair, exitPrice, realizedPnl);
+        if (contractsReady && position.tradeId) {
+          await contracts.recordTradePnL(position.tradeId, realizedPnl);
+          if (realizedPnl < 0) {
+            await contracts.publishAutopsy(
+              position.tradeId,
+              `Loss review for ${decision.pair}: exited at ${exitPrice} after entering at ${position.entryPrice}. Realized PnL ${realizedPnl.toFixed(2)}. ${decision.reasoning}`.slice(0, 500)
+            );
+          }
+        }
 
         // Update trade log with exit data
         await agentTracker.logTrade({
@@ -300,13 +323,9 @@ async function checkEpochRollover() {
         });
         const pulseId = randomBytes(16).toString('hex');
         await contracts.publishManifesto(bulletin, pulseId, true);
-
-        if (stats.totalPnl > 0) {
-          const profitsMicro = BigInt(Math.floor(stats.totalPnl * 1e6));
-          await contracts.distributeProfits(profitsMicro);
-        }
       }
 
+      await contracts.settleEpoch();
       await contracts.startNewEpoch();
     }
   } catch (err) {

@@ -14,7 +14,7 @@ export class ApiServer {
     this.app = express();
     this.supabase = new SupabaseTracker(
       process.env.SUPABASE_URL,
-      process.env.SUPABASE_ANON_KEY
+      process.env.SUPABASE_KEY || process.env.SUPABASE_ANON_KEY
     );
 
     this.setupMiddleware();
@@ -22,7 +22,7 @@ export class ApiServer {
   }
 
   setupMiddleware() {
-    this.app.use(cors());
+    // this.app.use(cors());
     this.app.use(express.json());
   }
 

@@ -1,4 +1,4 @@
-import { MyxClient, fromViemWalletClient, OrderType, TriggerType, Direction, getPoolList } from '@myx-trade/sdk';
+import { MyxClient, fromViemWalletClient, OrderType, TriggerType, Direction, getPoolList, getTickerData } from '@myx-trade/sdk';
 import { createWalletClient, createPublicClient, http, parseUnits, formatUnits, zeroHash } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { arbitrumSepolia, bsc, bscTestnet } from 'viem/chains';
@@ -26,9 +26,35 @@ export class MyxTradingClient {
 
     this.signer = fromViemWalletClient(viemWallet);
     this.address = this.account.address;
+    this.tradingMode = config.tradingMode;
 
     // Pool cache: baseSymbol -> pool info
     this.pools = null;
+  }
+
+  isMockMode() {
+    return this.tradingMode === 'mock';
+  }
+
+  buildMockExecution(pair, side, size, leverage = 1) {
+    return {
+      poolId: this.getPool(pair).poolId,
+      pair,
+      side,
+      mode: 'mock',
+      tx: {
+        code: 0,
+        message: `mock ${side.toLowerCase()} execution`,
+        data: {
+          success: true,
+          transactionHash: `mock_${side.toLowerCase()}_${Date.now()}`,
+          timestamp: Date.now(),
+          simulated: true,
+          size,
+          leverage,
+        },
+      },
+    };
   }
 
   async verifyOrderPlacement(poolId, txHash) {
@@ -72,7 +98,9 @@ export class MyxTradingClient {
     });
 
     const poolNames = this.pools.map((p) => `${p.baseSymbol}/${p.quoteSymbol}`).join(', ');
-    console.log(`[MYX Trading] Initialized on chainId ${MYX_CHAIN_ID}, ${this.pools.length} active pools: ${poolNames}`);
+    console.log(
+      `[MYX Trading] Initialized on chainId ${MYX_CHAIN_ID} in ${this.tradingMode.toUpperCase()} mode, ${this.pools.length} active pools: ${poolNames}`
+    );
   }
 
   /** Resolve a trading pair string like "BTCUSDC" or "ETHUSDT" to a pool */
@@ -87,6 +115,75 @@ export class MyxTradingClient {
     const pool = this.pools.find((p) => candidates.includes(p.baseSymbol.toUpperCase()));
     if (!pool) throw new Error(`No active MYX pool found for pair: ${pair}`);
     return pool;
+  }
+
+  normalizePairSymbol(pair) {
+    if (!pair) return pair;
+    return String(pair).toUpperCase().replace('BTCB', 'BTC');
+  }
+
+  extractPoolPrice(pool) {
+    const candidates = [
+      pool?.price,
+      pool?.markPrice,
+      pool?.indexPrice,
+      pool?.oraclePrice,
+      pool?.lastPrice,
+    ];
+
+    for (const value of candidates) {
+      if (value == null) continue;
+
+      if (typeof value === 'number' && Number.isFinite(value) && value > 0) {
+        return value;
+      }
+
+      if (typeof value === 'string' && value.trim()) {
+        const numeric = Number(value);
+        if (Number.isFinite(numeric) && numeric > 0) {
+          if (numeric > 1e12) {
+            try {
+              return Number(formatUnits(BigInt(value), PRICE_DECIMALS));
+            } catch {
+              continue;
+            }
+          }
+
+          return numeric;
+        }
+
+        try {
+          return Number(formatUnits(BigInt(value), PRICE_DECIMALS));
+        } catch {
+          continue;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  getBootstrapMarketData(pairs = []) {
+    if (!this.pools) return {};
+
+    const bootstrap = {};
+    for (const pair of pairs) {
+      try {
+        const pool = this.getPool(pair);
+        const price = this.extractPoolPrice(pool);
+        if (!price || !Number.isFinite(price)) continue;
+
+        bootstrap[pair] = {
+          price,
+          change24h: Number(pool?.change24h || pool?.priceChange24h || 0),
+          source: 'pool-bootstrap',
+        };
+      } catch {
+        // Ignore pairs without a matching pool
+      }
+    }
+
+    return bootstrap;
   }
 
   /** Convert human-readable USDC/USDT amount to token wei (18 decimals on BSC) */
@@ -124,6 +221,11 @@ export class MyxTradingClient {
    * @param {number} leverage
    */
   async openLong(pair, usdcAmount, leverage = 2) {
+    if (this.isMockMode()) {
+      console.log(`[MYX Trading] Mock LONG ${pair} $${usdcAmount} x${leverage}`);
+      return this.buildMockExecution(pair, 'LONG', usdcAmount, leverage);
+    }
+
     const pool = this.getPool(pair);
     const collateral = this.toCollateral(usdcAmount, pool.quoteDecimals);
 
@@ -179,6 +281,11 @@ export class MyxTradingClient {
    * @param {number} leverage
    */
   async openShort(pair, usdcAmount, leverage = 2) {
+    if (this.isMockMode()) {
+      console.log(`[MYX Trading] Mock SHORT ${pair} $${usdcAmount} x${leverage}`);
+      return this.buildMockExecution(pair, 'SHORT', usdcAmount, leverage);
+    }
+
     const pool = this.getPool(pair);
     const collateral = this.toCollateral(usdcAmount, pool.quoteDecimals);
 
@@ -232,6 +339,25 @@ export class MyxTradingClient {
    * @param {string} pair
    */
   async closePosition(pair) {
+    if (this.isMockMode()) {
+      console.log(`[MYX Trading] Mock CLOSE ${pair}`);
+      return {
+        poolId: this.getPool(pair).poolId,
+        pair,
+        mode: 'mock',
+        tx: {
+          code: 0,
+          message: 'mock close execution',
+          data: {
+            success: true,
+            transactionHash: `mock_close_${Date.now()}`,
+            timestamp: Date.now(),
+            simulated: true,
+          },
+        },
+      };
+    }
+
     const pool = this.getPool(pair);
 
     const positionsResult = await this.client.position.listPositions({
@@ -264,6 +390,10 @@ export class MyxTradingClient {
 
   /** Get open positions for the agent wallet */
   async getPositions() {
+    if (this.isMockMode()) {
+      return [];
+    }
+
     const result = await this.client.position.listPositions({
       chainId: MYX_CHAIN_ID,
       address: this.address,
@@ -274,12 +404,34 @@ export class MyxTradingClient {
   /** Get ticker price for a pair via SDK pool detail */
   async getTicker(pair) {
     const pool = this.getPool(pair);
-    const result = await this.client.markets.getMarkets?.(MYX_CHAIN_ID) ?? {};
-    const market = result?.data?.find?.((m) => m.poolId === pool.poolId);
+    const tickerResponse = await getTickerData(
+      { chainId: MYX_CHAIN_ID, poolIds: [pool.poolId] },
+      { isProd: !IS_TESTNET }
+    ).catch(() => null);
+    const market = tickerResponse?.data?.find?.((item) => item.poolId === pool.poolId);
+
+    if (market?.price) {
+      return {
+        pair,
+        poolId: pool.poolId,
+        lastPrice: formatUnits(BigInt(market.price), PRICE_DECIMALS),
+      };
+    }
+
+    const priceData = await this.client.utils.getOraclePrice(pool.poolId, MYX_CHAIN_ID).catch(() => null);
+    if (priceData?.price) {
+      return {
+        pair,
+        poolId: pool.poolId,
+        lastPrice: formatUnits(BigInt(priceData.price), PRICE_DECIMALS),
+      };
+    }
+
+    const bootstrapPrice = this.extractPoolPrice(pool);
     return {
       pair,
       poolId: pool.poolId,
-      lastPrice: market?.price ? formatUnits(BigInt(market.price), PRICE_DECIMALS) : null,
+      lastPrice: bootstrapPrice != null ? String(bootstrapPrice) : null,
     };
   }
 }

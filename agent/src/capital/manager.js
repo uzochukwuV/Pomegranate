@@ -256,7 +256,7 @@ export class CapitalManager {
       agentBalance: Number(formatUnits(agentBalance, decimals)),
       deployedAmount: Number(formatUnits(this.deployedAmount, decimals)),
       deployableInVault: Number(formatUnits(deployable, decimals)),
-      currentPnL,
+      currentPnL: currentPnl,
       hasDeployedCapital: this.deployedAmount > 0n,
     };
   }

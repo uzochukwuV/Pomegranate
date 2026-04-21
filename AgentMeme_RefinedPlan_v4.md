@@ -15,7 +15,7 @@ Five mechanics stack together to create something no other project in the hackat
 
 1. **Participatory Oracle** — token-weighted tip system. Submit a trade signal. If it leads to profit, you earn a bonus in tokens.
 2. **Buy-as-Vote** — attaching a message to your buy transaction influences the agent's directional thesis. Bigger buy = more weight.
-3. **Meme War** — weekly community meme contest. 1% of weekly trading profit goes to the winning meme creator.
+3. **Meme War** — weekly community meme contest. users post meme as nft and win - 1% of weekly trading profit goes to the winning meme creator.
 4. **Conviction Multiplier** — long-term holders get amplified signal weight. HODLing earns influence, not just exposure.
 5. **Contrarian Bounty** — the agent specifically rewards tips that go against the current crowd consensus and still turn out profitable. Anti-groupthink built in.
 

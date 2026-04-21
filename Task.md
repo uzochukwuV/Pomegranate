@@ -61,3 +61,13 @@ Run end-to-end test scenarios (A-G from plan)
 Deploy to BSC mainnet
 
 Verify all contracts on BSCScan
+
+Run end-to-end test scenarios (A-G from plan)
+
+Deploy to BSC mainnet
+
+Verify all contracts on BSCScan
+
+Create demo video (4 minutes)
+
+Prepare hackathon submission documentation

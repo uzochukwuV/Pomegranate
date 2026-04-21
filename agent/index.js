@@ -15,6 +15,12 @@ const marketData = {};
 const priceHistory = {}; // pair -> [{timestamp, price}]
 const MAX_HISTORY = 50; // Keep last 50 price points for RSI/EMA
 
+function isEpochAlreadyActiveError(error) {
+  const message = error?.shortMessage || error?.message || '';
+  const reason = error?.cause?.reason || error?.reason || '';
+  return message.includes('Epoch already active') || reason.includes('Epoch already active');
+}
+
 const myxWs = new MyxWebSocketClient();
 const myxTrading = new MyxTradingClient();
 const ai = new DecisionEngine();
@@ -24,7 +30,7 @@ const capitalManager = new CapitalManager();
 const agentTracker = new AgentTracker(
   './data',
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
+  process.env.SUPABASE_KEY || process.env.SUPABASE_ANON_KEY
 ); // Comprehensive tracking for frontend (local + Supabase)
 const apiServer = new ApiServer(3001, './data'); // REST API for frontend
 
@@ -202,10 +208,15 @@ async function runDecisionCycle() {
 
     if (decision.action === 'LONG') {
       order = await myxTrading.openLong(decision.pair, decision.size);
+      const executionMeta = {
+        executionMode: order?.mode || myxTrading.tradingMode || 'real',
+        simulated: Boolean(order?.tx?.data?.simulated || order?.mode === 'mock'),
+        executionNote: order?.tx?.message || null,
+      };
       await tracker.openPosition(
         decision.pair, 'LONG',
         entryPrice,
-        decision.size, 1, tradeId
+        decision.size, 1, tradeId, executionMeta
       );
 
       // Log trade for frontend
@@ -221,13 +232,21 @@ async function runDecisionCycle() {
         reason: decision.reasoning,
         attributedTip: decision.attributedTip,
         contrarian: false, // Set based on tip analysis
+        executionMode: executionMeta.executionMode,
+        simulated: executionMeta.simulated,
+        executionNote: executionMeta.executionNote,
       });
     } else if (decision.action === 'SHORT') {
       order = await myxTrading.openShort(decision.pair, decision.size);
+      const executionMeta = {
+        executionMode: order?.mode || myxTrading.tradingMode || 'real',
+        simulated: Boolean(order?.tx?.data?.simulated || order?.mode === 'mock'),
+        executionNote: order?.tx?.message || null,
+      };
       await tracker.openPosition(
         decision.pair, 'SHORT',
         entryPrice,
-        decision.size, 1, tradeId
+        decision.size, 1, tradeId, executionMeta
       );
 
       // Log trade for frontend
@@ -243,6 +262,9 @@ async function runDecisionCycle() {
         reason: decision.reasoning,
         attributedTip: decision.attributedTip,
         contrarian: false,
+        executionMode: executionMeta.executionMode,
+        simulated: executionMeta.simulated,
+        executionNote: executionMeta.executionNote,
       });
     } else if (decision.action === 'CLOSE') {
       const position = tracker.getPosition(decision.pair);
@@ -281,6 +303,9 @@ async function runDecisionCycle() {
           entryTime: position.openedAt || Date.now(),
           exitTime: Date.now(),
           reason: `Position closed: ${decision.reasoning}`,
+          executionMode: order?.mode || position.executionMode || myxTrading.tradingMode || 'real',
+          simulated: Boolean(order?.tx?.data?.simulated || position.simulated || order?.mode === 'mock'),
+          executionNote: order?.tx?.message || position.executionNote || null,
         });
       }
     }
@@ -300,34 +325,47 @@ async function runDecisionCycle() {
 async function checkEpochRollover() {
   if (!contractsReady) return;
   try {
-    const isActive = await contracts.isEpochActive();
+    let isActive = await contracts.isEpochActive();
     if (!isActive) {
       console.log('[Agent] Epoch inactive — starting new epoch');
-      await contracts.startNewEpoch();
+      try {
+        await contracts.startNewEpoch();
+        return;
+      } catch (err) {
+        if (!isEpochAlreadyActiveError(err)) {
+          throw err;
+        }
+        console.log('[Agent] Epoch was already active on-chain, continuing with current epoch state');
+        isActive = true;
+      }
     }
+
+    if (!isActive) return;
 
     const epochStart = await contracts.getEpochStartTime();
     const epochStartMs = Number(epochStart) * 1000;
+    if (!epochStartMs) return;
+
     const elapsed = Date.now() - epochStartMs;
 
-    if (elapsed >= config.epochDuration) {
-      console.log('[Agent] Epoch duration elapsed — generating Narrative Pulse');
-      const epochEnd = new Date();
-      const epochStartDate = new Date(epochStartMs);
-      const stats = await tracker.calculateEpochStats(epochStartDate, epochEnd);
+    if (elapsed < config.epochDuration) return;
 
-      if (stats.tradeCount > 0) {
-        const bulletin = await ai.generateNarrativePulse({
-          ...stats,
-          topContributor: stats.bestTrade?.attributedTipper ?? 'unknown',
-        });
-        const pulseId = randomBytes(16).toString('hex');
-        await contracts.publishManifesto(bulletin, pulseId, true);
-      }
+    console.log('[Agent] Epoch duration elapsed — generating Narrative Pulse');
+    const epochEnd = new Date();
+    const epochStartDate = new Date(epochStartMs);
+    const stats = await tracker.calculateEpochStats(epochStartDate, epochEnd);
 
-      await contracts.settleEpoch();
-      await contracts.startNewEpoch();
+    if (stats.tradeCount > 0) {
+      const bulletin = await ai.generateNarrativePulse({
+        ...stats,
+        topContributor: stats.bestTrade?.attributedTipper ?? 'unknown',
+      });
+      const pulseId = randomBytes(16).toString('hex');
+      await contracts.publishManifesto(bulletin, pulseId, true);
     }
+
+    await contracts.settleEpoch();
+    await contracts.startNewEpoch();
   } catch (err) {
     console.error('[Agent] Epoch rollover error:', err);
   }
@@ -389,17 +427,19 @@ async function main() {
 
     // Update state for frontend
     const capitalSummary = await capitalManager.getSummary();
-    const positions = Object.values(tracker.positions || {});
+    const positions = tracker.getOpenPositions();
 
     await agentTracker.updateState({
       isTrading: positions.length > 0,
-      currentPositions: positions.map(p => ({
+      currentPositions: positions.map((p) => ({
         pair: p.pair,
         side: p.side,
         entryPrice: p.entryPrice,
         currentPrice: p.currentPrice,
         size: p.size,
         unrealizedPnL: p.unrealizedPnL,
+        executionMode: p.executionMode || 'real',
+        simulated: Boolean(p.simulated),
       })),
       deployedCapital: capitalSummary.deployedAmount,
       vaultBalance: capitalSummary.deployableInVault,

@@ -562,6 +562,11 @@
         color: var(--positive);
       }
 
+      .tag.mock {
+        background: rgba(203, 79, 31, 0.12);
+        color: var(--brand);
+      }
+
       .tag.contrarian,
       .tag.pulse {
         background: rgba(181, 129, 18, 0.12);
@@ -983,7 +988,7 @@
               <div class="section-header">
                 <div>
                   <h2>Recent trades</h2>
-                  <p>Closed position history from Supabase, matched back to manifestos where possible.</p>
+                  <p>Closed position history merged from Supabase and the local agent trade log, matched back to manifestos where possible.</p>
                 </div>
                 <div class="mini-stat" id="stat-total-pnl-sub">0 closed trades</div>
               </div>

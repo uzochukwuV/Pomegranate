@@ -1,0 +1,10 @@
+{
+  "isTrading": false,
+  "currentPositions": [],
+  "deployedCapital": 0,
+  "vaultBalance": 0,
+  "agentBalance": 0,
+  "currentEpoch": "2",
+  "epochStartTime": null,
+  "lastUpdate": 1776793917811
+}

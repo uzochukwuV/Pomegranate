@@ -7,7 +7,7 @@ import {
 } from './contracts.js';
 import { socket } from './websocket.js';
 import { getClosedPositions, getTotalStats, getPnlChartData } from './supabase.js';
-import { getAgentState, getAgentStats } from './api.js';
+import { getAgentState, getAgentStats, getAgentFrontendData } from './api.js';
 
 function el(id) {
   return document.getElementById(id);
@@ -99,6 +99,46 @@ function emptyRow(columns, label) {
   return `<tr><td colspan="${columns}" class="empty-cell">${label}</td></tr>`;
 }
 
+function normalizeTrade(trade) {
+  if (!trade) return null;
+  return {
+    id: trade.id || trade.trade_id || trade.tradeId || `${trade.pair || 'trade'}-${trade.timestamp || trade.entryTime || trade.opened_at || Date.now()}`,
+    pair: trade.pair || '-',
+    side: trade.side || '-',
+    openedAt: trade.opened_at || trade.openedAt || trade.entryTime || null,
+    closedAt: trade.closed_at || trade.closedAt || trade.exitTime || null,
+    size: Number(trade.size || 0),
+    pnl: trade.pnl == null ? null : Number(trade.pnl),
+    tradeId: trade.trade_id || trade.tradeId || trade.id || null,
+    executionMode: trade.executionMode || (trade.simulated ? 'mock' : 'real'),
+    simulated: Boolean(trade.simulated || trade.executionMode === 'mock'),
+  };
+}
+
+function mergeTrades(primaryTrades, secondaryTrades) {
+  const merged = new Map();
+  [...secondaryTrades, ...primaryTrades].forEach((trade) => {
+    const normalized = normalizeTrade(trade);
+    if (!normalized) return;
+    const key = normalized.tradeId || normalized.id;
+    merged.set(key, normalized);
+  });
+
+  return [...merged.values()].sort((a, b) => {
+    const left = new Date(b.closedAt || b.openedAt || 0).getTime();
+    const right = new Date(a.closedAt || a.openedAt || 0).getTime();
+    return left - right;
+  });
+}
+
+function renderExecutionBadges(item) {
+  const badges = [];
+  if (item?.simulated || item?.executionMode === 'mock') {
+    badges.push('<span class="tag mock">Mock</span>');
+  }
+  return badges.join('');
+}
+
 const state = {
   epochSecondsLeft: 0,
   positions: new Map(),
@@ -154,32 +194,62 @@ async function refreshVaultStats() {
 }
 
 async function refreshHistoricalStats() {
+  let supabaseStats = null;
+  let supabaseChart = [];
+  let supabaseTrades = [];
+  let agentFrontend = null;
+
   try {
-    const stats = await getTotalStats();
-    const [chartData, trades] = await Promise.all([
+    supabaseStats = await getTotalStats();
+    [supabaseChart, supabaseTrades] = await Promise.all([
       getPnlChartData(30),
       getClosedPositions({ limit: 10 }),
     ]);
 
     setStatus('supabase-status', true, 'Supabase online');
-    setText('stat-winrate', `${fmt(stats.winRate)}%`);
-    setText('stat-total-pnl', `${pnlSign(stats.totalPnl)}${fmtUsd(stats.totalPnl)}`);
-    el('stat-total-pnl')?.classList.toggle('positive', stats.totalPnl >= 0);
-    el('stat-total-pnl')?.classList.toggle('negative', stats.totalPnl < 0);
-    setText('stat-total-pnl-sub', `${stats.tradeCount} closed trades`);
-    setText('stat-wins', stats.winCount);
-    setText('stat-losses', stats.lossCount);
-    setText('epoch-trades-count', stats.tradeCount);
-
-    renderPnlChart(chartData);
-    renderRecentTrades(trades);
-    renderPairBreakdown(trades);
   } catch (error) {
     console.warn('[Dashboard] historical stats unavailable', error);
     setStatus('supabase-status', false, 'Supabase unavailable');
-    setHtml('recent-trades-tbody', emptyRow(7, 'Historical trades are unavailable.'));
-    setHtml('pair-breakdown', '<div class="empty-state">No pair data yet.</div>');
   }
+
+  try {
+    agentFrontend = await getAgentFrontendData();
+  } catch (error) {
+    console.warn('[Dashboard] local agent trade history unavailable', error);
+  }
+
+  const localTrades = Array.isArray(agentFrontend?.recentTrades) ? agentFrontend.recentTrades : [];
+  const mergedTrades = mergeTrades(localTrades, supabaseTrades);
+  const mergedClosedTrades = mergedTrades.filter((trade) => trade.closedAt || trade.pnl != null);
+
+  const displayStats = supabaseStats || agentFrontend?.stats || null;
+  const displayChart = supabaseChart.length ? supabaseChart : (agentFrontend?.charts?.pnl || []);
+
+  if (!displayStats && !mergedTrades.length) {
+    setHtml('recent-trades-tbody', emptyRow(7, 'No trade history available yet.'));
+    setHtml('pair-breakdown', '<div class="empty-state">No pair data yet.</div>');
+    renderPnlChart([]);
+    return;
+  }
+
+  const totalPnl = Number(displayStats?.totalPnl || 0);
+  const tradeCount = Number(displayStats?.tradeCount || displayStats?.totalTrades || mergedClosedTrades.length);
+  const winCount = Number(displayStats?.winCount || displayStats?.winningTrades || 0);
+  const lossCount = Number(displayStats?.lossCount || displayStats?.losingTrades || 0);
+  const winRate = Number(displayStats?.winRate || 0);
+
+  setText('stat-winrate', `${fmt(winRate)}%`);
+  setText('stat-total-pnl', `${pnlSign(totalPnl)}${fmtUsd(totalPnl)}`);
+  el('stat-total-pnl')?.classList.toggle('positive', totalPnl >= 0);
+  el('stat-total-pnl')?.classList.toggle('negative', totalPnl < 0);
+  setText('stat-total-pnl-sub', `${tradeCount} closed trades`);
+  setText('stat-wins', winCount);
+  setText('stat-losses', lossCount);
+  setText('epoch-trades-count', tradeCount);
+
+  renderPnlChart(displayChart);
+  renderRecentTrades(mergedClosedTrades.slice(0, 10));
+  renderPairBreakdown(mergedClosedTrades);
 }
 
 function renderPnlChart(data) {
@@ -254,19 +324,19 @@ function renderRecentTrades(trades) {
   tbody.innerHTML = trades
     .map((trade) => {
       const pnl = Number(trade.pnl || 0);
-      const duration = trade.opened_at && trade.closed_at
-        ? fmtDuration(new Date(trade.closed_at) - new Date(trade.opened_at))
+      const duration = trade.openedAt && trade.closedAt
+        ? fmtDuration(new Date(trade.closedAt) - new Date(trade.openedAt))
         : '-';
       const label = pnl >= 0 ? 'Manifesto' : 'Autopsy';
       return `
         <tr>
           <td>${trade.pair || '-'}</td>
           <td><span class="pill ${String(trade.side || '').toLowerCase()}">${trade.side || '-'}</span></td>
-          <td>${fmtDate(trade.opened_at)}</td>
+          <td>${fmtDate(trade.openedAt)}</td>
           <td>${duration}</td>
           <td>${fmt(Number(trade.size || 0))}</td>
           <td class="${pnlClass(pnl)}">${pnlSign(pnl)}${fmtUsd(pnl)}</td>
-          <td>${trade.trade_id ? `<button class="ghost-button" onclick="showManifesto('${trade.trade_id}')">${label}</button>` : '-'}</td>
+          <td>${renderExecutionBadges(trade)} ${trade.tradeId ? `<button class="ghost-button" onclick="showManifesto('${trade.tradeId}')">${label}</button>` : '-'}</td>
         </tr>
       `;
     })
@@ -334,7 +404,7 @@ function renderActivePositions() {
     return `
       <tr>
         <td>${position.pair}</td>
-        <td><span class="pill ${String(position.side).toLowerCase()}">${position.side}</span></td>
+        <td><span class="pill ${String(position.side).toLowerCase()}">${position.side}</span> ${renderExecutionBadges(position)}</td>
         <td>${fmt(Number(position.size || 0))}</td>
         <td>${position.leverage}x</td>
         <td>${fmt(Number(position.entryPrice || 0))}</td>
@@ -354,7 +424,10 @@ function renderActivePositions() {
             <strong>${position.pair}</strong>
             <span>${position.leverage}x leverage</span>
           </div>
-          <span class="pill ${String(position.side).toLowerCase()}">${position.side}</span>
+          <div>
+            <span class="pill ${String(position.side).toLowerCase()}">${position.side}</span>
+            ${renderExecutionBadges(position)}
+          </div>
         </div>
         <div class="position-grid">
           <div><label>Entry</label><span>${fmt(Number(position.entryPrice || 0))}</span></div>

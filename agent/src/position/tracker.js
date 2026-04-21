@@ -60,7 +60,7 @@ export class PositionTracker extends EventEmitter {
   /**
    * Open a new position
    */
-  async openPosition(pair, side, entryPrice, size, leverage, tradeId) {
+  async openPosition(pair, side, entryPrice, size, leverage, tradeId, meta = {}) {
     const position = {
       pair,
       side,
@@ -76,6 +76,9 @@ export class PositionTracker extends EventEmitter {
       tradeId,
       attributedTipIndex: null,
       attributedTipper: null,
+      executionMode: meta.executionMode || 'real',
+      simulated: Boolean(meta.simulated),
+      executionNote: meta.executionNote || null,
     };
 
     this.positions.set(pair, position);

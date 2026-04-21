@@ -179,6 +179,9 @@ export class PositionWebSocketServer {
       tradeId: position.tradeId,
       attributedTipIndex: position.attributedTipIndex,
       attributedTipper: position.attributedTipper,
+      executionMode: position.executionMode || 'real',
+      simulated: Boolean(position.simulated),
+      executionNote: position.executionNote || null,
     };
   }
 

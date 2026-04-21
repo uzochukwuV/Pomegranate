@@ -2,6 +2,14 @@ import fs from 'fs/promises';
 import path from 'path';
 import { SupabaseTracker } from './supabase.js';
 
+function toJson(value) {
+  return JSON.stringify(
+    value,
+    (_key, item) => (typeof item === 'bigint' ? item.toString() : item),
+    2
+  );
+}
+
 /**
  * AgentTracker - Comprehensive tracking system for frontend display
  * Tracks trades, decisions, performance, state, and historical trends
@@ -75,12 +83,15 @@ export class AgentTracker {
       reason: trade.reason, // Why this trade was taken
       attributedTip: trade.attributedTip || null,
       contrarian: trade.contrarian || false,
+      executionMode: trade.executionMode || 'real',
+      simulated: Boolean(trade.simulated),
+      executionNote: trade.executionNote || null,
       epoch: this.currentState.currentEpoch,
     };
 
     // Save individual trade file (local)
     const tradeFile = path.join(this.dataDir, 'trades', `${tradeLog.id}.json`);
-    await fs.writeFile(tradeFile, JSON.stringify(tradeLog, null, 2));
+    await fs.writeFile(tradeFile, toJson(tradeLog));
 
     // Update trade history (local)
     await this.appendToHistory('trades', tradeLog);
@@ -92,6 +103,8 @@ export class AgentTracker {
     if (trade.status === 'CLOSED') {
       await this.updateStats(trade);
     }
+
+    await this.exportForFrontend();
 
     console.log(`[Tracker] Trade logged: ${tradeLog.id}`);
     return tradeLog;
@@ -124,7 +137,7 @@ export class AgentTracker {
       'decisions',
       `${decisionLog.id}.json`
     );
-    await fs.writeFile(decisionFile, JSON.stringify(decisionLog, null, 2));
+    await fs.writeFile(decisionFile, toJson(decisionLog));
 
     // Update decision history (local)
     await this.appendToHistory('decisions', decisionLog);
@@ -147,7 +160,7 @@ export class AgentTracker {
 
     // Save current state (local)
     const stateFile = path.join(this.dataDir, 'current-state.json');
-    await fs.writeFile(stateFile, JSON.stringify(this.currentState, null, 2));
+    await fs.writeFile(stateFile, toJson(this.currentState));
 
     // Update state in Supabase (cloud)
     await this.supabase.updateState(this.currentState);
@@ -183,7 +196,7 @@ export class AgentTracker {
       'epochs',
       `epoch_${epochLog.epochNumber}.json`
     );
-    await fs.writeFile(epochFile, JSON.stringify(epochLog, null, 2));
+    await fs.writeFile(epochFile, toJson(epochLog));
 
     // Update epoch history (local)
     await this.appendToHistory('epochs', epochLog);
@@ -235,7 +248,7 @@ export class AgentTracker {
 
     // Save stats
     const statsFile = path.join(this.dataDir, 'stats.json');
-    await fs.writeFile(statsFile, JSON.stringify(this.stats, null, 2));
+    await fs.writeFile(statsFile, toJson(this.stats));
 
     return this.stats;
   }
@@ -390,7 +403,7 @@ export class AgentTracker {
         history = history.slice(-1000);
       }
 
-      await fs.writeFile(historyFile, JSON.stringify(history, null, 2));
+      await fs.writeFile(historyFile, toJson(history));
     } catch (error) {
       console.error(`[Tracker] Error appending to ${type} history:`, error.message);
     }
@@ -433,7 +446,7 @@ export class AgentTracker {
 
     // Save frontend data file
     const frontendFile = path.join(this.dataDir, 'frontend-data.json');
-    await fs.writeFile(frontendFile, JSON.stringify(frontendData, null, 2));
+    await fs.writeFile(frontendFile, toJson(frontendData));
 
     return frontendData;
   }

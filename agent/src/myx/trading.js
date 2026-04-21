@@ -1,13 +1,13 @@
 import { MyxClient, fromViemWalletClient, OrderType, TriggerType, Direction, getPoolList } from '@myx-trade/sdk';
 import { createWalletClient, createPublicClient, http, parseUnits, formatUnits } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { arbitrumSepolia, bsc } from 'viem/chains';
+import { arbitrumSepolia, bsc, bscTestnet } from 'viem/chains';
 import { config } from '../config.js';
 
 const PRICE_DECIMALS = 30;
-const MYX_CHAIN_ID = parseInt(config.myxChainId); // 56 (BSC) or 421614 (Arb Sepolia testnet)
-const IS_TESTNET = MYX_CHAIN_ID === 421614;
-const CHAIN = IS_TESTNET ? arbitrumSepolia : bsc;
+const MYX_CHAIN_ID = parseInt(config.myxChainId); // 56 (BSC) or 421614 (Arb Sepolia testnet) or 97 (BSC Testnet)
+const IS_TESTNET = MYX_CHAIN_ID === 421614 || MYX_CHAIN_ID === 97;
+const CHAIN = MYX_CHAIN_ID === 421614 ? arbitrumSepolia : (MYX_CHAIN_ID === 97 ? bscTestnet : bsc);
 
 export class MyxTradingClient {
   constructor() {

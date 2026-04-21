@@ -1,0 +1,35 @@
+{
+  "name": "@michaleffffff/mcp-trading-server",
+  "version": "3.1.2",
+  "type": "module",
+  "bin": {
+    "myx-mcp": "dist/server.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "TOOL_EXAMPLES.md",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && tsc",
+    "start": "node dist/server.js",
+    "dev": "tsx src/server.ts",
+    "test": "tsx tests/test_sepolia.ts",
+    "test:new-tools": "tsx tests/test_new_tools_p0_p1.ts",
+    "test:manage-tpsl-delete": "tsx tests/test_manage_tpsl_delete_live.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.27.1",
+    "@myx-trade/sdk": "^1.0.4",
+    "dotenv": "^17.3.1",
+    "ethers": "^6.13.1",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
+    "typescript": "^5.5.0"
+  }
+}

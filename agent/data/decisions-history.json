@@ -1,0 +1,680 @@
+[
+  {
+    "id": "decision_1776766219450",
+    "timestamp": 1776766219450,
+    "type": "HOLD",
+    "action": "HOLD",
+    "pair": "BTCUSDT",
+    "confidence": 40,
+    "reasoning": "RSI neutral (50) and EMA12 equals EMA26 give no clear bullish or bearish signal; trend is bullish but signal neutral. Without community tips, confidence <0.6, so no trade.",
+    "marketConditions": [
+      {
+        "pair": "WBTCUSDT",
+        "price": 76479.77,
+        "change24h": 0.0155
+      },
+      {
+        "pair": "ETHUSDT",
+        "price": 2329.34,
+        "change24h": 0.0057
+      },
+      {
+        "pair": "BNBUSDT",
+        "price": 637.9,
+        "change24h": 0.0166
+      },
+      {
+        "pair": "BTCUSDT",
+        "price": 76479.77,
+        "change24h": 0.0155
+      },
+      {
+        "pair": "RFCUSDT",
+        "price": 0.000536,
+        "change24h": -0.0229
+      },
+      {
+        "pair": "titcoinUSDT",
+        "price": 0.000747,
+        "change24h": -0.0438
+      },
+      {
+        "pair": "DARKUSDT",
+        "price": 0.000232,
+        "change24h": -0.1044
+      },
+      {
+        "pair": "PARTIUSDT",
+        "price": 0.0428,
+        "change24h": 0.0781
+      },
+      {
+        "pair": "BANKUSDT",
+        "price": 0.052988,
+        "change24h": 0.3816
+      },
+      {
+        "pair": "SKYAIUSDT",
+        "price": 0.172465,
+        "change24h": -0.0332
+      },
+      {
+        "pair": "HOUSEUSDT",
+        "price": 0.001228,
+        "change24h": -0.0168
+      },
+      {
+        "pair": "NEETUSDT",
+        "price": 0.017915,
+        "change24h": -0.0794
+      },
+      {
+        "pair": "TROLLUSDT",
+        "price": 0.011656,
+        "change24h": -0.0503
+      },
+      {
+        "pair": "TRENCHERUSDT",
+        "price": 0.000275,
+        "change24h": -0.104
+      },
+      {
+        "pair": "MYXUSDT",
+        "price": 0.246855,
+        "change24h": 0.1365
+      },
+      {
+        "pair": "PUMPUSDT",
+        "price": 0.001861,
+        "change24h": 0.0225
+      },
+      {
+        "pair": "WLFIUSDT",
+        "price": 0.0792,
+        "change24h": 0.0159
+      },
+      {
+        "pair": "RHEAUSDT",
+        "price": 0.00969,
+        "change24h": 0.0369
+      }
+    ],
+    "technicalIndicators": {},
+    "tipAnalysis": {
+      "totalWeight": 0,
+      "bullishWeight": 0,
+      "bearishWeight": 0,
+      "topTips": [],
+      "themes": []
+    },
+    "crowdSentiment": "neutral",
+    "riskAssessment": "medium",
+    "executed": false,
+    "epoch": 0
+  },
+  {
+    "id": "decision_1776766233740",
+    "timestamp": 1776766233740,
+    "type": "HOLD",
+    "action": "HOLD",
+    "pair": "N/A",
+    "confidence": 20,
+    "reasoning": "BTC and ETH both have neutral RSI (50) and no EMA crossover, yielding neutral signals. Without community tips confidence is below the required 0.6 threshold, so no entry is justified.",
+    "marketConditions": [
+      {
+        "pair": "WBTCUSDT",
+        "price": 76462.31,
+        "change24h": 0.0153
+      },
+      {
+        "pair": "ETHUSDT",
+        "price": 2328.81,
+        "change24h": 0.0055
+      },
+      {
+        "pair": "BNBUSDT",
+        "price": 637.9,
+        "change24h": 0.0165
+      },
+      {
+        "pair": "BTCUSDT",
+        "price": 76462.31,
+        "change24h": 0.0153
+      },
+      {
+        "pair": "RFCUSDT",
+        "price": 0.000536,
+        "change24h": -0.0229
+      },
+      {
+        "pair": "titcoinUSDT",
+        "price": 0.000747,
+        "change24h": -0.0438
+      },
+      {
+        "pair": "DARKUSDT",
+        "price": 0.000232,
+        "change24h": -0.1044
+      },
+      {
+        "pair": "PARTIUSDT",
+        "price": 0.0428,
+        "change24h": 0.0781
+      },
+      {
+        "pair": "BANKUSDT",
+        "price": 0.052988,
+        "change24h": 0.3816
+      },
+      {
+        "pair": "SKYAIUSDT",
+        "price": 0.172423,
+        "change24h": -0.0334
+      },
+      {
+        "pair": "HOUSEUSDT",
+        "price": 0.001228,
+        "change24h": -0.0168
+      },
+      {
+        "pair": "NEETUSDT",
+        "price": 0.017915,
+        "change24h": -0.0794
+      },
+      {
+        "pair": "TROLLUSDT",
+        "price": 0.011656,
+        "change24h": -0.0503
+      },
+      {
+        "pair": "TRENCHERUSDT",
+        "price": 0.000275,
+        "change24h": -0.104
+      },
+      {
+        "pair": "MYXUSDT",
+        "price": 0.246935,
+        "change24h": 0.1369
+      },
+      {
+        "pair": "PUMPUSDT",
+        "price": 0.001861,
+        "change24h": 0.0225
+      },
+      {
+        "pair": "WLFIUSDT",
+        "price": 0.0792,
+        "change24h": 0.0159
+      },
+      {
+        "pair": "RHEAUSDT",
+        "price": 0.00969,
+        "change24h": 0.0373
+      }
+    ],
+    "technicalIndicators": {},
+    "tipAnalysis": {
+      "totalWeight": 0,
+      "bullishWeight": 0,
+      "bearishWeight": 0,
+      "topTips": [],
+      "themes": []
+    },
+    "crowdSentiment": "neutral",
+    "riskAssessment": "medium",
+    "executed": false,
+    "epoch": 0
+  },
+  {
+    "id": "decision_1776766243438",
+    "timestamp": 1776766243438,
+    "type": "HOLD",
+    "action": "HOLD",
+    "pair": "BTCUSDT",
+    "confidence": 55.00000000000001,
+    "reasoning": "RSI oversold suggests BUY but EMA12 < EMA26 signals bearish trend; signals are conflicting, confidence ~0.55 (<0.6 required without community tips).",
+    "marketConditions": [
+      {
+        "pair": "WBTCUSDT",
+        "price": 76464.93,
+        "change24h": 0.0153
+      },
+      {
+        "pair": "ETHUSDT",
+        "price": 2329.12,
+        "change24h": 0.0056
+      },
+      {
+        "pair": "BNBUSDT",
+        "price": 637.8,
+        "change24h": 0.0163
+      },
+      {
+        "pair": "BTCUSDT",
+        "price": 76464.93,
+        "change24h": 0.0153
+      },
+      {
+        "pair": "RFCUSDT",
+        "price": 0.000536,
+        "change24h": -0.0229
+      },
+      {
+        "pair": "titcoinUSDT",
+        "price": 0.000747,
+        "change24h": -0.0438
+      },
+      {
+        "pair": "DARKUSDT",
+        "price": 0.000232,
+        "change24h": -0.1044
+      },
+      {
+        "pair": "PARTIUSDT",
+        "price": 0.0428,
+        "change24h": 0.0782
+      },
+      {
+        "pair": "BANKUSDT",
+        "price": 0.052988,
+        "change24h": 0.3816
+      },
+      {
+        "pair": "SKYAIUSDT",
+        "price": 0.172418,
+        "change24h": -0.0335
+      },
+      {
+        "pair": "HOUSEUSDT",
+        "price": 0.001228,
+        "change24h": -0.0168
+      },
+      {
+        "pair": "NEETUSDT",
+        "price": 0.017915,
+        "change24h": -0.0794
+      },
+      {
+        "pair": "TROLLUSDT",
+        "price": 0.011656,
+        "change24h": -0.0503
+      },
+      {
+        "pair": "TRENCHERUSDT",
+        "price": 0.000275,
+        "change24h": -0.104
+      },
+      {
+        "pair": "MYXUSDT",
+        "price": 0.246724,
+        "change24h": 0.1359
+      },
+      {
+        "pair": "PUMPUSDT",
+        "price": 0.00186,
+        "change24h": 0.022
+      },
+      {
+        "pair": "WLFIUSDT",
+        "price": 0.0792,
+        "change24h": 0.0159
+      },
+      {
+        "pair": "RHEAUSDT",
+        "price": 0.00969,
+        "change24h": 0.0369
+      }
+    ],
+    "technicalIndicators": {},
+    "tipAnalysis": {
+      "totalWeight": 0,
+      "bullishWeight": 0,
+      "bearishWeight": 0,
+      "topTips": [],
+      "themes": []
+    },
+    "crowdSentiment": "neutral",
+    "riskAssessment": "medium",
+    "executed": false,
+    "epoch": 0
+  },
+  {
+    "id": "decision_1776766313249",
+    "timestamp": 1776766313249,
+    "type": "HOLD",
+    "action": "HOLD",
+    "pair": "N/A",
+    "confidence": 40,
+    "reasoning": "Both BTC and ETH show neutral RSI (50) and no EMA crossover, yielding no clear technical signal. With no community tips, confidence stays below 0.6, so no trade is initiated.",
+    "marketConditions": [
+      {
+        "pair": "WBTCUSDT",
+        "price": 76430.66,
+        "change24h": 0.0141
+      },
+      {
+        "pair": "ETHUSDT",
+        "price": 2328.26,
+        "change24h": 0.0044
+      },
+      {
+        "pair": "BNBUSDT",
+        "price": 637.6,
+        "change24h": 0.0154
+      },
+      {
+        "pair": "BTCUSDT",
+        "price": 76430.66,
+        "change24h": 0.0141
+      },
+      {
+        "pair": "RFCUSDT",
+        "price": 0.000536,
+        "change24h": -0.0229
+      },
+      {
+        "pair": "titcoinUSDT",
+        "price": 0.000747,
+        "change24h": -0.0438
+      },
+      {
+        "pair": "DARKUSDT",
+        "price": 0.000232,
+        "change24h": -0.1044
+      },
+      {
+        "pair": "PARTIUSDT",
+        "price": 0.0429,
+        "change24h": 0.0775
+      },
+      {
+        "pair": "BANKUSDT",
+        "price": 0.052988,
+        "change24h": 0.3816
+      },
+      {
+        "pair": "SKYAIUSDT",
+        "price": 0.172335,
+        "change24h": -0.0493
+      },
+      {
+        "pair": "HOUSEUSDT",
+        "price": 0.001228,
+        "change24h": -0.0168
+      },
+      {
+        "pair": "NEETUSDT",
+        "price": 0.017915,
+        "change24h": -0.0794
+      },
+      {
+        "pair": "TROLLUSDT",
+        "price": 0.011656,
+        "change24h": -0.0503
+      },
+      {
+        "pair": "TRENCHERUSDT",
+        "price": 0.000275,
+        "change24h": -0.104
+      },
+      {
+        "pair": "MYXUSDT",
+        "price": 0.245721,
+        "change24h": 0.1285
+      },
+      {
+        "pair": "PUMPUSDT",
+        "price": 0.00186,
+        "change24h": 0.0203
+      },
+      {
+        "pair": "WLFIUSDT",
+        "price": 0.0792,
+        "change24h": 0.0156
+      },
+      {
+        "pair": "RHEAUSDT",
+        "price": 0.0097,
+        "change24h": 0.0376
+      }
+    ],
+    "technicalIndicators": {},
+    "tipAnalysis": {
+      "totalWeight": 0,
+      "bullishWeight": 0,
+      "bearishWeight": 0,
+      "topTips": [],
+      "themes": []
+    },
+    "crowdSentiment": "neutral",
+    "riskAssessment": "medium",
+    "executed": false,
+    "epoch": 0
+  },
+  {
+    "id": "decision_1776766328598",
+    "timestamp": 1776766328598,
+    "type": "HOLD",
+    "action": "HOLD",
+    "pair": "BTCUSDT",
+    "confidence": 40,
+    "reasoning": "RSI at 50 and EMA12 equals EMA26 give no clear buy/sell signal; trend is bullish but signal is neutral. With no community tips, confidence is below the 0.6 threshold, so the safest move is to hold.",
+    "marketConditions": [
+      {
+        "pair": "WBTCUSDT",
+        "price": 76438.7,
+        "change24h": 0.0143
+      },
+      {
+        "pair": "ETHUSDT",
+        "price": 2328.51,
+        "change24h": 0.0049
+      },
+      {
+        "pair": "BNBUSDT",
+        "price": 637.7,
+        "change24h": 0.0155
+      },
+      {
+        "pair": "BTCUSDT",
+        "price": 76438.7,
+        "change24h": 0.0143
+      },
+      {
+        "pair": "RFCUSDT",
+        "price": 0.000536,
+        "change24h": -0.0229
+      },
+      {
+        "pair": "titcoinUSDT",
+        "price": 0.000747,
+        "change24h": -0.0438
+      },
+      {
+        "pair": "DARKUSDT",
+        "price": 0.000232,
+        "change24h": -0.1044
+      },
+      {
+        "pair": "PARTIUSDT",
+        "price": 0.0428,
+        "change24h": 0.0752
+      },
+      {
+        "pair": "BANKUSDT",
+        "price": 0.052988,
+        "change24h": 0.3816
+      },
+      {
+        "pair": "SKYAIUSDT",
+        "price": 0.172364,
+        "change24h": -0.0645
+      },
+      {
+        "pair": "HOUSEUSDT",
+        "price": 0.001228,
+        "change24h": -0.0168
+      },
+      {
+        "pair": "NEETUSDT",
+        "price": 0.017915,
+        "change24h": -0.0794
+      },
+      {
+        "pair": "TROLLUSDT",
+        "price": 0.011656,
+        "change24h": -0.0503
+      },
+      {
+        "pair": "TRENCHERUSDT",
+        "price": 0.000275,
+        "change24h": -0.104
+      },
+      {
+        "pair": "MYXUSDT",
+        "price": 0.246137,
+        "change24h": 0.1298
+      },
+      {
+        "pair": "PUMPUSDT",
+        "price": 0.00186,
+        "change24h": 0.0201
+      },
+      {
+        "pair": "WLFIUSDT",
+        "price": 0.0792,
+        "change24h": 0.0157
+      },
+      {
+        "pair": "RHEAUSDT",
+        "price": 0.00971,
+        "change24h": 0.0374
+      }
+    ],
+    "technicalIndicators": {},
+    "tipAnalysis": {
+      "totalWeight": 0,
+      "bullishWeight": 0,
+      "bearishWeight": 0,
+      "topTips": [],
+      "themes": []
+    },
+    "crowdSentiment": "neutral",
+    "riskAssessment": "medium",
+    "executed": false,
+    "epoch": 0
+  },
+  {
+    "id": "decision_1776766336315",
+    "timestamp": 1776766336315,
+    "type": "TRADE",
+    "action": "SHORT",
+    "pair": "BTCUSDT",
+    "confidence": 86,
+    "reasoning": "RSI 74 (overbought) + bearish trend + STRONG_SELL signal aligns for short. No community tips needed; technical confidence >0.6.",
+    "marketConditions": [
+      {
+        "pair": "WBTCUSDT",
+        "price": 76437.95,
+        "change24h": 0.0143
+      },
+      {
+        "pair": "ETHUSDT",
+        "price": 2328.59,
+        "change24h": 0.0049
+      },
+      {
+        "pair": "BNBUSDT",
+        "price": 637.7,
+        "change24h": 0.0155
+      },
+      {
+        "pair": "BTCUSDT",
+        "price": 76437.95,
+        "change24h": 0.0143
+      },
+      {
+        "pair": "RFCUSDT",
+        "price": 0.000536,
+        "change24h": -0.0229
+      },
+      {
+        "pair": "titcoinUSDT",
+        "price": 0.000747,
+        "change24h": -0.0438
+      },
+      {
+        "pair": "DARKUSDT",
+        "price": 0.000232,
+        "change24h": -0.1044
+      },
+      {
+        "pair": "PARTIUSDT",
+        "price": 0.0428,
+        "change24h": 0.0752
+      },
+      {
+        "pair": "BANKUSDT",
+        "price": 0.052988,
+        "change24h": 0.3816
+      },
+      {
+        "pair": "SKYAIUSDT",
+        "price": 0.172364,
+        "change24h": -0.0645
+      },
+      {
+        "pair": "HOUSEUSDT",
+        "price": 0.001228,
+        "change24h": -0.0168
+      },
+      {
+        "pair": "NEETUSDT",
+        "price": 0.017915,
+        "change24h": -0.0794
+      },
+      {
+        "pair": "TROLLUSDT",
+        "price": 0.011656,
+        "change24h": -0.0503
+      },
+      {
+        "pair": "TRENCHERUSDT",
+        "price": 0.000275,
+        "change24h": -0.104
+      },
+      {
+        "pair": "MYXUSDT",
+        "price": 0.246714,
+        "change24h": 0.1324
+      },
+      {
+        "pair": "PUMPUSDT",
+        "price": 0.00186,
+        "change24h": 0.0199
+      },
+      {
+        "pair": "WLFIUSDT",
+        "price": 0.0792,
+        "change24h": 0.0157
+      },
+      {
+        "pair": "RHEAUSDT",
+        "price": 0.0097,
+        "change24h": 0.0375
+      }
+    ],
+    "technicalIndicators": {},
+    "tipAnalysis": {
+      "totalWeight": 0,
+      "bullishWeight": 0,
+      "bearishWeight": 0,
+      "topTips": [],
+      "themes": []
+    },
+    "crowdSentiment": "neutral",
+    "riskAssessment": "medium",
+    "executed": true,
+    "epoch": 0
+  }
+]

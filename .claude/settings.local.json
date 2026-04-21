@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir:*)",
+      "Bash(pnpm test)",
+      "Bash(pnpm hardhat test:*)",
+      "Bash(pnpm add:*)"
+    ]
+  }
+}

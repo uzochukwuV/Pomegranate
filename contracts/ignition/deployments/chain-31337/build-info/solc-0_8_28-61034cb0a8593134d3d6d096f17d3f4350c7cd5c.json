@@ -1,0 +1,49 @@
+{
+  "_format": "hh3-sol-build-info-1",
+  "id": "solc-0_8_28-61034cb0a8593134d3d6d096f17d3f4350c7cd5c",
+  "solcVersion": "0.8.28",
+  "solcLongVersion": "0.8.28+commit.7893614a",
+  "compilerType": "solc",
+  "toolVersions": {
+    "hardhat": "3.4.0"
+  },
+  "userSourceNameMap": {
+    "contracts/ManifestoLog.sol": "project/contracts/ManifestoLog.sol"
+  },
+  "input": {
+    "language": "Solidity",
+    "settings": {
+      "evmVersion": "cancun",
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "outputSelection": {
+        "*": {
+          "": [
+            "ast"
+          ],
+          "*": [
+            "abi",
+            "evm.bytecode.linkReferences",
+            "evm.bytecode.object",
+            "evm.bytecode.opcodes",
+            "evm.bytecode.sourceMap",
+            "evm.deployedBytecode.immutableReferences",
+            "evm.deployedBytecode.linkReferences",
+            "evm.deployedBytecode.object",
+            "evm.deployedBytecode.opcodes",
+            "evm.deployedBytecode.sourceMap",
+            "evm.methodIdentifiers"
+          ]
+        }
+      },
+      "remappings": []
+    },
+    "sources": {
+      "project/contracts/ManifestoLog.sol": {
+        "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.20;\n\n/**\n * @title ManifestoLog\n * @notice Append-only on-chain reasoning log for the AI agent\n * @dev All manifestos are public and immutable. Agent publishes reasoning before executing trades.\n */\ncontract ManifestoLog {\n    /// @notice The authorized agent address that can publish manifestos\n    address public immutable agent;\n\n    /// @notice Counter for total manifestos published\n    uint256 public manifestoCount;\n\n    /// @notice Struct representing a single manifesto entry\n    struct Manifesto {\n        uint256 id;\n        string reasoning;      // The agent's reasoning (max 500 chars enforced off-chain)\n        uint256 timestamp;\n        bytes32 tradeId;       // Associated trade ID (can be 0 for non-trade manifestos)\n        bool isPulse;          // True if this is a Narrative Pulse, false for trade reasoning\n    }\n\n    /// @notice Mapping from manifesto ID to Manifesto data\n    mapping(uint256 => Manifesto) public manifestos;\n\n    /// @notice Emitted when a new manifesto is published\n    event ManifestoPublished(\n        uint256 indexed id,\n        string reasoning,\n        uint256 timestamp,\n        bytes32 indexed tradeId,\n        bool isPulse\n    );\n\n    /// @notice Emitted when a loss autopsy is published\n    event AutopsyPublished(\n        uint256 indexed id,\n        bytes32 indexed tradeId,\n        string reasoning,\n        uint256 timestamp\n    );\n\n    error OnlyAgent();\n\n    modifier onlyAgent() {\n        if (msg.sender != agent) revert OnlyAgent();\n        _;\n    }\n\n    /**\n     * @notice Constructor sets the agent address\n     * @param _agent Address of the AI agent authorized to publish\n     */\n    constructor(address _agent) {\n        require(_agent != address(0), \"Agent cannot be zero address\");\n        agent = _agent;\n    }\n\n    /**\n     * @notice Publish a manifesto entry\n     * @param reasoning The agent's reasoning text\n     * @param tradeId Associated trade ID (use bytes32(0) for non-trade entries)\n     * @param isPulse True if this is a Narrative Pulse bulletin\n     */\n    function publishManifesto(\n        string calldata reasoning,\n        bytes32 tradeId,\n        bool isPulse\n    ) external onlyAgent {\n        require(bytes(reasoning).length > 0, \"Reasoning cannot be empty\");\n        require(bytes(reasoning).length <= 500, \"Reasoning too long\");\n\n        uint256 id = manifestoCount++;\n\n        manifestos[id] = Manifesto({\n            id: id,\n            reasoning: reasoning,\n            timestamp: block.timestamp,\n            tradeId: tradeId,\n            isPulse: isPulse\n        });\n\n        emit ManifestoPublished(id, reasoning, block.timestamp, tradeId, isPulse);\n    }\n\n    /**\n     * @notice Publish a loss autopsy (post-mortem for a losing trade)\n     * @param tradeId The trade that resulted in a loss\n     * @param reasoning Explanation of what went wrong\n     */\n    function publishAutopsy(\n        bytes32 tradeId,\n        string calldata reasoning\n    ) external onlyAgent {\n        require(tradeId != bytes32(0), \"Trade ID required for autopsy\");\n        require(bytes(reasoning).length > 0, \"Reasoning cannot be empty\");\n        require(bytes(reasoning).length <= 500, \"Reasoning too long\");\n\n        uint256 id = manifestoCount++;\n\n        manifestos[id] = Manifesto({\n            id: id,\n            reasoning: reasoning,\n            timestamp: block.timestamp,\n            tradeId: tradeId,\n            isPulse: false\n        });\n\n        emit AutopsyPublished(id, tradeId, reasoning, block.timestamp);\n    }\n\n    /**\n     * @notice Get a manifesto by ID\n     * @param id The manifesto ID to query\n     * @return The Manifesto struct\n     */\n    function getManifesto(uint256 id) external view returns (Manifesto memory) {\n        require(id < manifestoCount, \"Manifesto does not exist\");\n        return manifestos[id];\n    }\n\n    /**\n     * @notice Get the latest N manifestos\n     * @param count Number of recent manifestos to return\n     * @return Array of Manifesto structs\n     */\n    function getRecentManifestos(uint256 count) external view returns (Manifesto[] memory) {\n        uint256 total = manifestoCount;\n        if (count > total) count = total;\n\n        Manifesto[] memory recent = new Manifesto[](count);\n        for (uint256 i = 0; i < count; i++) {\n            recent[i] = manifestos[total - 1 - i];\n        }\n\n        return recent;\n    }\n}\n"
+      }
+    }
+  }
+}

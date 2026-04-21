@@ -1,0 +1,113 @@
+{
+  "id": "decision_1776766219450",
+  "timestamp": 1776766219450,
+  "type": "HOLD",
+  "action": "HOLD",
+  "pair": "BTCUSDT",
+  "confidence": 40,
+  "reasoning": "RSI neutral (50) and EMA12 equals EMA26 give no clear bullish or bearish signal; trend is bullish but signal neutral. Without community tips, confidence <0.6, so no trade.",
+  "marketConditions": [
+    {
+      "pair": "WBTCUSDT",
+      "price": 76479.77,
+      "change24h": 0.0155
+    },
+    {
+      "pair": "ETHUSDT",
+      "price": 2329.34,
+      "change24h": 0.0057
+    },
+    {
+      "pair": "BNBUSDT",
+      "price": 637.9,
+      "change24h": 0.0166
+    },
+    {
+      "pair": "BTCUSDT",
+      "price": 76479.77,
+      "change24h": 0.0155
+    },
+    {
+      "pair": "RFCUSDT",
+      "price": 0.000536,
+      "change24h": -0.0229
+    },
+    {
+      "pair": "titcoinUSDT",
+      "price": 0.000747,
+      "change24h": -0.0438
+    },
+    {
+      "pair": "DARKUSDT",
+      "price": 0.000232,
+      "change24h": -0.1044
+    },
+    {
+      "pair": "PARTIUSDT",
+      "price": 0.0428,
+      "change24h": 0.0781
+    },
+    {
+      "pair": "BANKUSDT",
+      "price": 0.052988,
+      "change24h": 0.3816
+    },
+    {
+      "pair": "SKYAIUSDT",
+      "price": 0.172465,
+      "change24h": -0.0332
+    },
+    {
+      "pair": "HOUSEUSDT",
+      "price": 0.001228,
+      "change24h": -0.0168
+    },
+    {
+      "pair": "NEETUSDT",
+      "price": 0.017915,
+      "change24h": -0.0794
+    },
+    {
+      "pair": "TROLLUSDT",
+      "price": 0.011656,
+      "change24h": -0.0503
+    },
+    {
+      "pair": "TRENCHERUSDT",
+      "price": 0.000275,
+      "change24h": -0.104
+    },
+    {
+      "pair": "MYXUSDT",
+      "price": 0.246855,
+      "change24h": 0.1365
+    },
+    {
+      "pair": "PUMPUSDT",
+      "price": 0.001861,
+      "change24h": 0.0225
+    },
+    {
+      "pair": "WLFIUSDT",
+      "price": 0.0792,
+      "change24h": 0.0159
+    },
+    {
+      "pair": "RHEAUSDT",
+      "price": 0.00969,
+      "change24h": 0.0369
+    }
+  ],
+  "technicalIndicators": {},
+  "tipAnalysis": {
+    "totalWeight": 0,
+    "bullishWeight": 0,
+    "bearishWeight": 0,
+    "topTips": [],
+    "themes": []
+  },
+  "crowdSentiment": "neutral",
+  "riskAssessment": "medium",
+  "executed": false,
+  "epoch": 0
+}

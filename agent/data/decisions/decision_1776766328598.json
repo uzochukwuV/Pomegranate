@@ -1,0 +1,113 @@
+{
+  "id": "decision_1776766328598",
+  "timestamp": 1776766328598,
+  "type": "HOLD",
+  "action": "HOLD",
+  "pair": "BTCUSDT",
+  "confidence": 40,
+  "reasoning": "RSI at 50 and EMA12 equals EMA26 give no clear buy/sell signal; trend is bullish but signal is neutral. With no community tips, confidence is below the 0.6 threshold, so the safest move is to hold.",
+  "marketConditions": [
+    {
+      "pair": "WBTCUSDT",
+      "price": 76438.7,
+      "change24h": 0.0143
+    },
+    {
+      "pair": "ETHUSDT",
+      "price": 2328.51,
+      "change24h": 0.0049
+    },
+    {
+      "pair": "BNBUSDT",
+      "price": 637.7,
+      "change24h": 0.0155
+    },
+    {
+      "pair": "BTCUSDT",
+      "price": 76438.7,
+      "change24h": 0.0143
+    },
+    {
+      "pair": "RFCUSDT",
+      "price": 0.000536,
+      "change24h": -0.0229
+    },
+    {
+      "pair": "titcoinUSDT",
+      "price": 0.000747,
+      "change24h": -0.0438
+    },
+    {
+      "pair": "DARKUSDT",
+      "price": 0.000232,
+      "change24h": -0.1044
+    },
+    {
+      "pair": "PARTIUSDT",
+      "price": 0.0428,
+      "change24h": 0.0752
+    },
+    {
+      "pair": "BANKUSDT",
+      "price": 0.052988,
+      "change24h": 0.3816
+    },
+    {
+      "pair": "SKYAIUSDT",
+      "price": 0.172364,
+      "change24h": -0.0645
+    },
+    {
+      "pair": "HOUSEUSDT",
+      "price": 0.001228,
+      "change24h": -0.0168
+    },
+    {
+      "pair": "NEETUSDT",
+      "price": 0.017915,
+      "change24h": -0.0794
+    },
+    {
+      "pair": "TROLLUSDT",
+      "price": 0.011656,
+      "change24h": -0.0503
+    },
+    {
+      "pair": "TRENCHERUSDT",
+      "price": 0.000275,
+      "change24h": -0.104
+    },
+    {
+      "pair": "MYXUSDT",
+      "price": 0.246137,
+      "change24h": 0.1298
+    },
+    {
+      "pair": "PUMPUSDT",
+      "price": 0.00186,
+      "change24h": 0.0201
+    },
+    {
+      "pair": "WLFIUSDT",
+      "price": 0.0792,
+      "change24h": 0.0157
+    },
+    {
+      "pair": "RHEAUSDT",
+      "price": 0.00971,
+      "change24h": 0.0374
+    }
+  ],
+  "technicalIndicators": {},
+  "tipAnalysis": {
+    "totalWeight": 0,
+    "bullishWeight": 0,
+    "bearishWeight": 0,
+    "topTips": [],
+    "themes": []
+  },
+  "crowdSentiment": "neutral",
+  "riskAssessment": "medium",
+  "executed": false,
+  "epoch": 0
+}

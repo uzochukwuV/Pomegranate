@@ -1,0 +1,113 @@
+{
+  "id": "decision_1776766336315",
+  "timestamp": 1776766336315,
+  "type": "TRADE",
+  "action": "SHORT",
+  "pair": "BTCUSDT",
+  "confidence": 86,
+  "reasoning": "RSI 74 (overbought) + bearish trend + STRONG_SELL signal aligns for short. No community tips needed; technical confidence >0.6.",
+  "marketConditions": [
+    {
+      "pair": "WBTCUSDT",
+      "price": 76437.95,
+      "change24h": 0.0143
+    },
+    {
+      "pair": "ETHUSDT",
+      "price": 2328.59,
+      "change24h": 0.0049
+    },
+    {
+      "pair": "BNBUSDT",
+      "price": 637.7,
+      "change24h": 0.0155
+    },
+    {
+      "pair": "BTCUSDT",
+      "price": 76437.95,
+      "change24h": 0.0143
+    },
+    {
+      "pair": "RFCUSDT",
+      "price": 0.000536,
+      "change24h": -0.0229
+    },
+    {
+      "pair": "titcoinUSDT",
+      "price": 0.000747,
+      "change24h": -0.0438
+    },
+    {
+      "pair": "DARKUSDT",
+      "price": 0.000232,
+      "change24h": -0.1044
+    },
+    {
+      "pair": "PARTIUSDT",
+      "price": 0.0428,
+      "change24h": 0.0752
+    },
+    {
+      "pair": "BANKUSDT",
+      "price": 0.052988,
+      "change24h": 0.3816
+    },
+    {
+      "pair": "SKYAIUSDT",
+      "price": 0.172364,
+      "change24h": -0.0645
+    },
+    {
+      "pair": "HOUSEUSDT",
+      "price": 0.001228,
+      "change24h": -0.0168
+    },
+    {
+      "pair": "NEETUSDT",
+      "price": 0.017915,
+      "change24h": -0.0794
+    },
+    {
+      "pair": "TROLLUSDT",
+      "price": 0.011656,
+      "change24h": -0.0503
+    },
+    {
+      "pair": "TRENCHERUSDT",
+      "price": 0.000275,
+      "change24h": -0.104
+    },
+    {
+      "pair": "MYXUSDT",
+      "price": 0.246714,
+      "change24h": 0.1324
+    },
+    {
+      "pair": "PUMPUSDT",
+      "price": 0.00186,
+      "change24h": 0.0199
+    },
+    {
+      "pair": "WLFIUSDT",
+      "price": 0.0792,
+      "change24h": 0.0157
+    },
+    {
+      "pair": "RHEAUSDT",
+      "price": 0.0097,
+      "change24h": 0.0375
+    }
+  ],
+  "technicalIndicators": {},
+  "tipAnalysis": {
+    "totalWeight": 0,
+    "bullishWeight": 0,
+    "bearishWeight": 0,
+    "topTips": [],
+    "themes": []
+  },
+  "crowdSentiment": "neutral",
+  "riskAssessment": "medium",
+  "executed": true,
+  "epoch": 0
+}

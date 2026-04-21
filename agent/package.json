@@ -1,0 +1,35 @@
+{
+  "name": "agentmeme-agent",
+  "version": "1.0.0",
+  "description": "AgentMeme AI Trading Agent",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "test": "node --test"
+  },
+  "keywords": [
+    "ai",
+    "trading",
+    "defi",
+    "meme"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@myx-trade/sdk": "^1.0.18",
+    "@supabase/supabase-js": "^2.104.0",
+    "cors": "^2.8.6",
+    "dotenv": "^16.4.5",
+    "ethers": "^6.16.0",
+    "express": "^5.2.1",
+    "openai": "^4.77.0",
+    "viem": "^2.48.1",
+    "ws": "^8.20.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.17",
+    "@types/ws": "^8.5.13"
+  }
+}

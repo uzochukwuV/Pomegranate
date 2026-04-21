@@ -1,6 +1,9 @@
 import hardhatToolboxViemPlugin from "@nomicfoundation/hardhat-toolbox-viem";
 import { configVariable, defineConfig } from "hardhat/config";
 
+import * as dotenv from "dotenv";
+dotenv.config();
+
 export default defineConfig({
   plugins: [hardhatToolboxViemPlugin],
   solidity: {
@@ -42,8 +45,12 @@ export default defineConfig({
     sepolia: {
       type: "http",
       chainType: "l1",
-      url: configVariable("SEPOLIA_RPC_URL"),
-      accounts: [configVariable("SEPOLIA_PRIVATE_KEY")],
+      url: configVariable("SEPOLIA_RPC_URL", "https://ethereum-sepolia-rpc.publicnode.com"),
+      accounts: [configVariable("SEPOLIA_PRIVATE_KEY", "0x0000000000000000000000000000000000000000000000000000000000000000")],
+    },
+    bscTestnet: {
+      url: process.env.BSC_TESTNET_RPC_URL || "https://data-seed-prebsc-1-s1.binance.org:8545",
+      accounts: [process.env.BSC_TESTNET_PRIVATE_KEY || "0x0000000000000000000000000000000000000000000000000000000000000000"],
     },
   },
 });

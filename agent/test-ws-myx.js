@@ -1,13 +1,15 @@
-const WebSocket = require('ws');
+import WebSocket from 'ws';
+import { HttpsProxyAgent } from 'https-proxy-agent';
 
 // Using the Beta environment for testing
 const WS_URL = 'wss://oapi-beta.myx.finance:443/ws';
 
 console.log(`Connecting to MYX Finance WebSocket at ${WS_URL}...`);
-const ws = new WebSocket(WS_URL);
+const agent = process.env.https_proxy ? new HttpsProxyAgent(process.env.https_proxy) : undefined;
+const ws = new WebSocket(WS_URL, { agent });
 
-// Arbitrum Sepolia chain ID as per the docs
-const chainId = '421614';
+// BSC Testnet chain ID
+const chainId = '97';
 const pair = 'BTCUSDC';
 
 ws.on('open', function open() {
@@ -16,7 +18,7 @@ ws.on('open', function open() {
   // Subscribe to a public ticker stream
   const subscribeMsg = {
     request: 'sub',
-    args: [`ticker.${chainId}.${pair}`, `trade.${chainId}.${pair}`]
+    args: [`summary.${chainId}`]
   };
   
   console.log('Sending subscription request:', subscribeMsg);

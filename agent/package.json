@@ -18,6 +18,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@michaleffffff/mcp-trading-server": "^3.1.2",
     "@myx-trade/sdk": "^1.0.18",
     "@supabase/supabase-js": "^2.104.0",
     "cors": "^2.8.6",
